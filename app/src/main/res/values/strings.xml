@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">ReadBook</string>
+    <string name="ettPtText">A sight or prospect, typically of attractive natural scenery, that can be taken in by the eye from a particular place.</string>
+    <string name="tvwPtCountry">Language:</string>
+    <string name="tvwPtStyle">Style:</string>
+    <string name="tvwPtGender">Gender:</string>
+    <string name="tvwPtNaturalSampleRateHertz">NaturalSampleRateHertz:</string>
+    <string name="tvwPtPitch">Pitch Rate:</string>
+    <string name="tvwPtSpeakRate">Speak Rate:</string>
+    <string name="btnPtSpeechText">Speak</string>
+    <string name="btnPtSpeechResume">Resume</string>
+    <string name="btnPtSpeechPause">Pause</string>
+    <string name="btnPtSpeechStop">Stop</string>
+    <string name="btnPtRefresh">Refresh</string>
+
+    <string name="ok">OK</string>
+    <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
+    <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>
+    <string name="low_storage_error">Ocr dependencies cannot be downloaded due to low device storage</string>
+    <string name="title_activity_main">Ocr Detector Sample</string>
+    <string name="ocr_header">Click &quot;Detect Text&quot; to detect text</string>
+    <string name="read_text">Detect Text</string>
+    <string name="auto_focus">Auto Focus</string>
+    <string name="use_flash">Use Flash</string>
+    <string name="ocr_success">Text read successfully</string>
+    <string name="ocr_failure">No text captured</string>
+    <string name="ocr_error">"Error reading text: %1$s"</string>
+</resources>
