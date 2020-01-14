@@ -1,10 +1,14 @@
 package com.rooms.android.readbook.tts.gcp;
 
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.util.Log;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.rooms.android.readbook.database.DBManager;
+import com.rooms.android.readbook.model.AudioData;
 import com.squareup.okhttp.*;
 
 import java.io.IOException;
@@ -20,6 +24,7 @@ public class GCPTTS {
 
     private List<ISpeakListener> mSpeakListeners = new ArrayList<>();
 
+    Context mContext;
     private GCPVoice mGCPVoice;
     private AudioConfig mAudioConfig;
     private String mMessage;
@@ -28,13 +33,14 @@ public class GCPTTS {
 
     private int mVoiceLength = -1;
 
-    public GCPTTS() {
+    public GCPTTS(Context context) {
+        mContext = context;
     }
 
-    public GCPTTS(GCPVoice gcpVoice, AudioConfig audioConfig) {
-        mGCPVoice = gcpVoice;
-        mAudioConfig = audioConfig;
-    }
+//    public GCPTTS(GCPVoice gcpVoice, AudioConfig audioConfig) {
+//        mGCPVoice = gcpVoice;
+//        mAudioConfig = audioConfig;
+//    }
 
     public void setGCPVoice(GCPVoice gcpVoice) {
         mGCPVoice = gcpVoice;
@@ -59,9 +65,16 @@ public class GCPTTS {
     private Runnable runnableSend = new Runnable() {
         @Override
         public void run() {
+
+            ArrayList<AudioData> audios = DBManager.getInstance(mContext).selectAudioData(mMessage);
+            if (!audios.isEmpty()) {
+                playAudio(audios.get(0).getAudioData());
+                return;
+            }
             OkHttpClient okHttpClient = new OkHttpClient();
             RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"),
                     mVoiceMessage.toString());
+            Log.i(TAG, "RequestBody body = " + mVoiceMessage.toString());
             Request request = new Request.Builder()
                     .url(Config.SYNTHESIZE_ENDPOINT)
                     .addHeader(Config.API_KEY_HEADER, Config.API_KEY)
@@ -80,6 +93,7 @@ public class GCPTTS {
                 public void onResponse(Response response) throws IOException {
                     if (response != null) {
                         Log.i(TAG, "onResponse code = " + response.code());
+                        Log.i(TAG, "onResponse body = " + response.body().string());
                         if (response.code() == 200) {
                             String text = response.body().string();
                             JsonElement jsonElement = new JsonParser().parse(text);
@@ -88,6 +102,7 @@ public class GCPTTS {
                             if (jsonObject != null) {
                                 String json = jsonObject.get("audioContent").toString();
                                 json = json.replace("\"", "");
+                                DBManager.getInstance(mContext).insertAudioData(mMessage, json);
                                 playAudio(json);
                                 return;
                             }

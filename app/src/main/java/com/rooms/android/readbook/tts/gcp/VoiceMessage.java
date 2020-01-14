@@ -39,6 +39,10 @@ public class VoiceMessage {
         }
     }
 
+    public Input getInput() {
+        return mInput;
+    }
+
     @Override
     public String toString() {
         return "{" + mInput.toString() + "," +
