@@ -73,7 +73,9 @@ public class BookListActivity extends AppCompatActivity {
                     builder.show();
 
                 } else {
-
+                    Intent intent = new Intent(mContext, CreateBookActivity.class);
+                    intent.putExtra(CreateBookActivity.KEY_BOOK_ID, bookData.getBookId());
+                    startActivity(intent);
                 }
             }
         });

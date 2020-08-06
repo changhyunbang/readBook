@@ -1,8 +1,10 @@
 package com.rooms.android.readbook.list;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -15,6 +17,7 @@ import com.rooms.android.readbook.model.PageData;
 public class PageItemViewer extends LinearLayout {
 
     TextView tvTitle;
+    ImageView ivImage;
 
     public PageItemViewer(Context context) {
         super(context);
@@ -32,10 +35,11 @@ public class PageItemViewer extends LinearLayout {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.list_item_page, this, true);
 
-        tvTitle = (TextView)findViewById(R.id.TV_TITLE);
+        tvTitle = (TextView)findViewById(R.id.TV_INDEX);
+        ivImage = (ImageView)findViewById(R.id.IV_IMAGE);
     }
 
     public void setItem(PageData pageData){
-
+        ivImage.setImageBitmap(BitmapFactory.decodeFile(pageData.getImagePath()));
     }
 }

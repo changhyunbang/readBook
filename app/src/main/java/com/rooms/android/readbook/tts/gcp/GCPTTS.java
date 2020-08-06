@@ -92,11 +92,14 @@ public class GCPTTS {
                 @Override
                 public void onResponse(Response response) throws IOException {
                     if (response != null) {
-                        Log.i(TAG, "onResponse code = " + response.code());
-                        Log.i(TAG, "onResponse body = " + response.body().string());
+                        int resultCode = response.code();
+                        String resultBody = response.body().string();
+
+                        Log.i(TAG, "onResponse code = " + resultCode);
+                        Log.i(TAG, "onResponse body = " + resultBody);
                         if (response.code() == 200) {
-                            String text = response.body().string();
-                            JsonElement jsonElement = new JsonParser().parse(text);
+//                            String text = response.body().string();
+                            JsonElement jsonElement = new JsonParser().parse(resultBody);
                             JsonObject jsonObject = jsonElement.getAsJsonObject();
 
                             if (jsonObject != null) {

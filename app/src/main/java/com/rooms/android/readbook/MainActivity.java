@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int RESULT_LOAD_IMAGE = 1;
     private static final int TEXT_TO_SPEECH_CODE = 0x100;
 
-    private static final boolean ENABLE_CLOUD_OCR = true;
+    private static final boolean ENABLE_CLOUD_OCR = false;
 
     ImageView srcImgVie;
     Button btnLoad;
@@ -69,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.d(TAG, "onCreate!!!!!!!");
 
         setContentView(R.layout.activity_main);
 
@@ -84,11 +86,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         tvResult.setMovementMethod(new ScrollingMovementMethod());
 
-        final String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+        Log.d(TAG, "sdk version : " + Build.VERSION.SDK_INT);
 
-        final int MyVersion = Build.VERSION.SDK_INT;
-        if (MyVersion > Build.VERSION_CODES.LOLLIPOP_MR1) {
-            if (!checkIfAlreadyhavePermission()) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+
+            boolean checkPermission = checkIfAlreadyhavePermission();
+
+            Log.d(TAG, "checkPermission : " + checkPermission);
+
+            if (!checkPermission) {
+                final String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
                 ActivityCompat.requestPermissions(this, permissions, 1);
             } else {
                 init();
@@ -157,17 +164,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void init() {
-        Context context = getApplicationContext();
-        Drawable drawable = getResources().getDrawable(R.drawable.sampledata1);
-
-        // drawable 타입을 bitmap으로 변경
-        Bitmap bitmap = ((BitmapDrawable)drawable).getBitmap();
-
-        recognizeText(FirebaseVisionImage.fromBitmap(bitmap));
-
-        Intent checkIntent = new Intent();
-        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkIntent, TEXT_TO_SPEECH_CODE);
+//        Context context = getApplicationContext();
+//        Drawable drawable = getResources().getDrawable(R.drawable.sampledata1);
+//
+//        // drawable 타입을 bitmap으로 변경
+//        Bitmap bitmap = ((BitmapDrawable)drawable).getBitmap();
+//
+//        recognizeText(FirebaseVisionImage.fromBitmap(bitmap));
+//
+//        Intent checkIntent = new Intent();
+//        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+//        startActivityForResult(checkIntent, TEXT_TO_SPEECH_CODE);
+        startActivity(new Intent(this, BookListActivity.class));
     }
 
     @Override
@@ -233,8 +241,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private boolean checkIfAlreadyhavePermission() {
-        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        return result == PackageManager.PERMISSION_GRANTED;
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override

@@ -7,10 +7,19 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,11 +28,18 @@ import com.rooms.android.readbook.tts.TextToSpeechManger;
 import com.rooms.android.readbook.tts.android.AndroidTTS;
 import com.rooms.android.readbook.tts.android.AndroidTTSAdapter;
 import com.rooms.android.readbook.tts.android.AndroidVoice;
-import com.rooms.android.readbook.tts.gcp.*;
+import com.rooms.android.readbook.tts.gcp.AudioConfig;
+import com.rooms.android.readbook.tts.gcp.EAudioEncoding;
+import com.rooms.android.readbook.tts.gcp.ESSMLlVoiceGender;
+import com.rooms.android.readbook.tts.gcp.GCPTTS;
+import com.rooms.android.readbook.tts.gcp.GCPTTSAdapter;
+import com.rooms.android.readbook.tts.gcp.GCPVoice;
+import com.rooms.android.readbook.tts.gcp.VoiceCollection;
+import com.rooms.android.readbook.tts.gcp.VoiceList;
 
 import java.util.Locale;
 
-public class TtsActivity extends AppCompatActivity implements View.OnClickListener {
+public class TtsSettingActivity  extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = MainActivity.class.getName();
     private static final int TEXT_TO_SPEECH_CODE = 0x100;
 
@@ -52,7 +68,7 @@ public class TtsActivity extends AppCompatActivity implements View.OnClickListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tts);
+        setContentView(R.layout.activity_tts_setting);
         buildViews();
         final Context self = this;
         mHandler = new Handler(Looper.getMainLooper()) {
@@ -297,7 +313,7 @@ public class TtsActivity extends AppCompatActivity implements View.OnClickListen
                     }
                 });
 
-                mGCPTTS = new GCPTTS();
+                mGCPTTS = new GCPTTS(getApplicationContext());
                 mGCPTTS.addSpeakListener(new GCPTTS.ISpeakListener() {
                     @Override
                     public void onSuccess(String message) {
@@ -339,6 +355,34 @@ public class TtsActivity extends AppCompatActivity implements View.OnClickListen
         String name = mSpinnerStyle.getSelectedItem().toString();
         float pitch = ((float) (mPitch - 2000) / 100);
         float speakRate = ((float) (mSpeakRate + 25) / 100);
+
+        Log.d(TAG, ">>loadGCPTTS");
+        Log.d(TAG, "++languageCode : " + languageCode);
+        Log.d(TAG, "++name : " + name);
+        Log.d(TAG, "++pitch : " + pitch);
+        Log.d(TAG, "++speakRate : " + speakRate);
+
+        GCPVoice gcpVoice = new GCPVoice(languageCode, name);
+        AudioConfig audioConfig = new AudioConfig.Builder()
+                .addAudioEncoding(EAudioEncoding.MP3)
+                .addSpeakingRate(speakRate)
+                .addPitch(pitch)
+                .build();
+
+        mGCPTTS.setGCPVoice(gcpVoice);
+        mGCPTTS.setAudioConfig(audioConfig);
+        GCPTTSAdapter gcpttsAdapter = new GCPTTSAdapter(mGCPTTS);
+
+        return new TextToSpeechManger(gcpttsAdapter);
+    }
+
+    private TextToSpeechManger loadGCPTTS(String languageCode, String name, float pitchValue, float speakRateValue) {
+        if (mGCPTTS == null) {
+            return null;
+        }
+
+        float pitch = ((float) (pitchValue - 2000) / 100);
+        float speakRate = ((float) (speakRateValue + 25) / 100);
 
         GCPVoice gcpVoice = new GCPVoice(languageCode, name);
         AudioConfig audioConfig = new AudioConfig.Builder()

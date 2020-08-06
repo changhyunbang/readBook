@@ -57,7 +57,10 @@ public class CreateBookActivity extends AppCompatActivity {
                     intent.putExtra(CreatePageActivity.KEY_BOOK_ID, mBookId);
                     startActivity(intent);
                 } else {
-                    
+                    Intent intent = new Intent(mContext, CreatePageActivity.class);
+                    intent.putExtra(CreatePageActivity.KEY_BOOK_ID, mBookId);
+                    intent.putExtra(CreatePageActivity.KEY_PAGE_ID, mBookId);
+                    startActivity(intent);
                 }
             }
         });

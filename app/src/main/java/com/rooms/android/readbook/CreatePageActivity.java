@@ -48,6 +48,7 @@ import com.google.firebase.ml.vision.text.FirebaseVisionCloudTextRecognizerOptio
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.google.firebase.ml.vision.text.RecognizedLanguage;
+import com.rooms.android.readbook.database.DBManager;
 import com.rooms.android.readbook.tts.TTSManager;
 import com.rooms.android.readbook.utils.Utils;
 
@@ -60,6 +61,7 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
     private static final String TAG = CreatePageActivity.class.getSimpleName();
 
     public static final String KEY_BOOK_ID = "BOOK_ID";
+    public static final String KEY_PAGE_ID = "PAGE_ID";
 
     private static final int TEXT_TO_SPEECH_CODE = 0x100;
     private static final int LOAD_GALLERY_CODE = 0x101;
@@ -71,6 +73,10 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
     Button btnLoad;
     TextView tvResult;
     Button btnRead;
+    Button btnOk;
+
+    String bookId;
+    String pageId;
     Bitmap srcBitmap;
 
     @Override
@@ -83,11 +89,13 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
         btnLoad = findViewById(R.id.BTN_LOAD);
         tvResult = findViewById(R.id.TV_RESULT);
         btnRead = findViewById(R.id.BTN_READ);
+        btnOk = findViewById(R.id.BTN_OK);
 
         findViewById(R.id.BTN_ROTATE_L).setOnClickListener(this);
         findViewById(R.id.BTN_ROTATE_R).setOnClickListener(this);
         findViewById(R.id.BTN_LOAD).setOnClickListener(this);
         findViewById(R.id.BTN_READ).setOnClickListener(this);
+        findViewById(R.id.BTN_OK).setOnClickListener(this);
 
         tvResult.setMovementMethod(new ScrollingMovementMethod());
 
@@ -101,6 +109,13 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
                 init();
             }
         }
+
+        bookId = getIntent().getStringExtra(KEY_BOOK_ID);
+        pageId = getIntent().getStringExtra(KEY_PAGE_ID);
+
+        if (!TextUtils.isEmpty(pageId)) {
+            // TODO : 페이지 정보 로드
+        }
     }
 
 
@@ -108,11 +123,6 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.BTN_LOAD :
-//                Intent i = new Intent(
-//                        Intent.ACTION_PICK,
-//                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//                startActivityForResult(i, RESULT_LOAD_IMAGE);
-
                 showPictureDialog();
                 break;
             case R.id.BTN_READ :
@@ -132,6 +142,11 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
 //                }
 
                 TTSManager.getInstance(this).speak(tvResult.getText().toString());
+                break;
+            case R.id.BTN_OK :
+                if (srcBitmap != null && !TextUtils.isEmpty(bookId) && !TextUtils.isEmpty(tvResult.getText())) {
+                    DBManager.getInstance(this).insertPageData(bookId, "0", Utils.saveImage(this, srcBitmap, "REED_BOOK"), tvResult.getText().toString());
+                }
                 break;
             case R.id.BTN_ROTATE_L :
                 try {
@@ -250,7 +265,9 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
                 if (data != null) {
                     Uri contentURI = data.getData();
                     try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+                        srcBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+//                        String path = saveImage(bitmap);
+
                         srcImgVie.setImageBitmap(srcBitmap);
 
                         recognizeText(FirebaseVisionImage.fromBitmap(srcBitmap));
@@ -259,21 +276,6 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
                         e.printStackTrace();
                     }
                 }
-//                    Uri selectedImage = data.getData();
-//                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
-//
-//                    Cursor cursor = getContentResolver().query(selectedImage,
-//                            filePathColumn, null, null, null);
-//                    cursor.moveToFirst();
-//
-//                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//                    String picturePath = cursor.getString(columnIndex);
-//                    cursor.close();
-//
-//                    srcBitmap = BitmapFactory.decodeFile(picturePath);
-//
-//
-//                }
                 break;
             case TEXT_TO_SPEECH_CODE:
                 if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
@@ -288,7 +290,7 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
                 }
                 break;
             case LOAD_CAMERA_CODE:
-                Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+                srcBitmap = (Bitmap) data.getExtras().get("data");
                 srcImgVie.setImageBitmap(srcBitmap);
 
                 recognizeText(FirebaseVisionImage.fromBitmap(srcBitmap));
