@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
 
@@ -18,17 +19,17 @@ import com.rooms.android.readbook.database.DBManager;
 import com.rooms.android.readbook.list.PageItemViewer;
 import com.rooms.android.readbook.model.BookData;
 import com.rooms.android.readbook.model.PageData;
+import com.rooms.android.readbook.utils.Constants;
 
 import java.util.ArrayList;
 
-public class CreateBookActivity extends AppCompatActivity {
-
-    public static final String KEY_BOOK_ID = "BOOK_ID";
+public class CreateBookActivity extends AppCompatActivity implements View.OnClickListener {
 
     Context mContext;
     String mBookId = "";
     TextView mTvTitle;
     GridView mGvPageList;
+    Button mBtnConfirm;
     PagesAdapter mPagesAdapter;
 
     @Override
@@ -37,12 +38,13 @@ public class CreateBookActivity extends AppCompatActivity {
 
         mContext = this;
 
-        mBookId = getIntent().getStringExtra(KEY_BOOK_ID);
+        mBookId = getIntent().getStringExtra(Constants.KEY_BOOK_ID);
 
         setContentView(R.layout.activity_createbook);
 
         mTvTitle = (TextView)findViewById(R.id.TV_TITLE);
         mGvPageList = (GridView)findViewById(R.id.GV_LIST);
+        mBtnConfirm = findViewById(R.id.BTN_CONFIRM);
 
         mPagesAdapter = new PagesAdapter();
         mGvPageList.setAdapter(mPagesAdapter);
@@ -52,18 +54,16 @@ public class CreateBookActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 PageData pageData = (PageData)view.getTag();
 
-                if (TextUtils.isEmpty(pageData.getPageId())) {
-                    Intent intent = new Intent(mContext, CreatePageActivity.class);
-                    intent.putExtra(CreatePageActivity.KEY_BOOK_ID, mBookId);
-                    startActivity(intent);
-                } else {
-                    Intent intent = new Intent(mContext, CreatePageActivity.class);
-                    intent.putExtra(CreatePageActivity.KEY_BOOK_ID, mBookId);
-                    intent.putExtra(CreatePageActivity.KEY_PAGE_ID, mBookId);
-                    startActivity(intent);
+                Intent intent = new Intent(mContext, CreatePageActivity.class);
+                intent.putExtra(Constants.KEY_BOOK_ID, mBookId);
+                if (TextUtils.isEmpty(pageData.getPageId()) == false) {
+                    intent.putExtra(Constants.KEY_PAGE_ID, pageData.getPageId());
                 }
+                startActivity(intent);
             }
         });
+
+        mBtnConfirm.setOnClickListener(this);
 
         refreshData();
     }
@@ -93,6 +93,18 @@ public class CreateBookActivity extends AppCompatActivity {
         } finally {
             mPagesAdapter.addItem(new PageData());
             mPagesAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.BTN_CONFIRM:
+                finish();
+                break;
+            default:
+                break;
+
         }
     }
 

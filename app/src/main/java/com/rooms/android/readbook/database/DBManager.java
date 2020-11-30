@@ -99,6 +99,42 @@ public class DBManager {
         return resultData;
     }
 
+    public PageData selectPageData(String book_id, String page_id) {
+
+        PageData resultData = null;
+
+        Cursor c = null;
+        String query = "";
+
+        try {
+            mSqlDB = mSQLiteOpenHelper.getReadableDatabase();
+
+            query = "SELECT * FROM "+TABLE_NAME_PAGE+" WHERE book_id=? AND page_id=?";
+            c = mSqlDB.rawQuery(query, new String[] {book_id, page_id});
+
+            while(c.moveToNext()){
+
+                resultData = new PageData();
+
+                resultData.setPageId(c.getString(0));
+                resultData.setBookId(c.getString(1));
+                resultData.setPageIndex(c.getString(2));
+                resultData.setImagePath(c.getString(3));
+                resultData.setText(c.getString(4));
+
+                Log.d(TAG, resultData.toString());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+
+        return resultData;
+    }
+
     public ArrayList<PageData> selectPageDataByBookId(@Nullable String book_id) {
 
         ArrayList<PageData> resultData = new ArrayList<>();;
@@ -187,6 +223,8 @@ public class DBManager {
 
     public String insertAudioData(String text, String audio_data) {
 
+        Log.d(TAG, "insertAudioData text : " + text + " audio_data : " + audio_data);
+
         String resultAudioId = "";
 
         ArrayList<AudioData> resultData = new ArrayList<>();
@@ -205,9 +243,9 @@ public class DBManager {
             value.put("audio_data", audio_data);
 
             if (isExist) {
-                resultAudioId = String.valueOf(mSqlDB.insert(TABLE_NAME_AUDIO, null, value));
-            } else {
                 resultAudioId = String.valueOf(mSqlDB.update(TABLE_NAME_AUDIO, value, "text=" + text, null));
+            } else {
+                resultAudioId = String.valueOf(mSqlDB.insert(TABLE_NAME_AUDIO, null, value));
             }
 
         } catch (Exception e) {

@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
@@ -16,10 +17,16 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,6 +41,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -49,19 +57,26 @@ import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.google.firebase.ml.vision.text.RecognizedLanguage;
 import com.rooms.android.readbook.database.DBManager;
+import com.rooms.android.readbook.model.PageData;
 import com.rooms.android.readbook.tts.TTSManager;
+import com.rooms.android.readbook.tts.android.AndroidTTS;
+import com.rooms.android.readbook.utils.Constants;
+import com.rooms.android.readbook.utils.GetWordTextView;
 import com.rooms.android.readbook.utils.Utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class CreatePageActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = CreatePageActivity.class.getSimpleName();
-
-    public static final String KEY_BOOK_ID = "BOOK_ID";
-    public static final String KEY_PAGE_ID = "PAGE_ID";
 
     private static final int TEXT_TO_SPEECH_CODE = 0x100;
     private static final int LOAD_GALLERY_CODE = 0x101;
@@ -71,13 +86,16 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
 
     ImageView srcImgVie;
     Button btnLoad;
-    TextView tvResult;
+    GetWordTextView tvResult;
     Button btnRead;
     Button btnOk;
 
     String bookId;
     String pageId;
     Bitmap srcBitmap;
+
+    private String imageFilePath;
+    private Uri photoUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +116,14 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
         findViewById(R.id.BTN_OK).setOnClickListener(this);
 
         tvResult.setMovementMethod(new ScrollingMovementMethod());
+        tvResult.setOnWordClickListener(new GetWordTextView.OnWordClickListener() {
+            @Override
+            public void onClick(String word) {
+                Toast.makeText(getApplicationContext(), word, Toast.LENGTH_LONG).show();
+
+                TTSManager.getInstance(getApplicationContext()).speak(word);
+            }
+        });
 
         final String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
 
@@ -110,14 +136,24 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
             }
         }
 
-        bookId = getIntent().getStringExtra(KEY_BOOK_ID);
-        pageId = getIntent().getStringExtra(KEY_PAGE_ID);
+        bookId = getIntent().getStringExtra(Constants.KEY_BOOK_ID);
+        pageId = getIntent().getStringExtra(Constants.KEY_PAGE_ID);
+
+        Log.d(TAG, "getBookId : " + bookId);
+        Log.d(TAG, "getPageId : " + pageId);
 
         if (!TextUtils.isEmpty(pageId)) {
             // TODO : 페이지 정보 로드
+            PageData pageData = DBManager.getInstance(this).selectPageData(bookId, pageId);
+            if (pageData != null) {
+                Log.d(TAG, "getPageIndex : " + pageData.getPageIndex());
+                Log.d(TAG, "getImagePath : " + pageData.getImagePath());
+                Log.d(TAG, "getText : " + pageData.getText());
+                srcImgVie.setImageBitmap(Utils.getBitmap(pageData.getImagePath()));
+                tvResult.setText(pageData.getText());
+            }
         }
     }
-
 
     @Override
     public void onClick(View view) {
@@ -146,6 +182,9 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
             case R.id.BTN_OK :
                 if (srcBitmap != null && !TextUtils.isEmpty(bookId) && !TextUtils.isEmpty(tvResult.getText())) {
                     DBManager.getInstance(this).insertPageData(bookId, "0", Utils.saveImage(this, srcBitmap, "REED_BOOK"), tvResult.getText().toString());
+                    finish();
+                } else {
+                    Toast.makeText(this, "필수 데이터 누락", Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.BTN_ROTATE_L :
@@ -212,8 +251,37 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void takePhotoFromCamera() {
-        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, LOAD_CAMERA_CODE);
+//        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(intent, LOAD_CAMERA_CODE);
+
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+            }
+
+            if (photoFile != null) {
+                photoUri = FileProvider.getUriForFile(this, getPackageName(), photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                startActivityForResult(takePictureIntent, LOAD_CAMERA_CODE);
+            }
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "TEST_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,      /* prefix */
+                ".jpg",         /* suffix */
+                storageDir          /* directory */
+        );
+        imageFilePath = image.getAbsolutePath();
+        return image;
     }
 
     private void init() {
@@ -290,10 +358,24 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
                 }
                 break;
             case LOAD_CAMERA_CODE:
-                srcBitmap = (Bitmap) data.getExtras().get("data");
-                srcImgVie.setImageBitmap(srcBitmap);
+//                srcBitmap = (Bitmap) data.getExtras().get("data");
+//                srcImgVie.setImageBitmap(srcBitmap);
 
-                recognizeText(FirebaseVisionImage.fromBitmap(srcBitmap));
+                if (resultCode == RESULT_OK) {
+
+                    try {
+                        srcBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(photoUri));
+                        srcImgVie.setImageBitmap(srcBitmap);
+                        recognizeText(FirebaseVisionImage.fromBitmap(srcBitmap));
+                    } catch (FileNotFoundException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
                 break;
         }
     }
@@ -346,6 +428,9 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
 
     private void recognizeProcess(FirebaseVisionTextRecognizer detector, FirebaseVisionImage image) {
         // [START run_detector]
+
+
+
         Task<FirebaseVisionText> result =
                 detector.processImage(image)
                         .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
@@ -354,9 +439,8 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
 
                                 Log.d(TAG, "recognizeProcess onSuccess");
 
-                                // Task completed successfully
-                                // [START_EXCLUDE]
-                                // [START get_text]
+                                StringBuilder recognizeBuilder = new StringBuilder();
+
                                 for (FirebaseVisionText.TextBlock block : firebaseVisionText.getTextBlocks()) {
                                     Rect boundingBox = block.getBoundingBox();
                                     Point[] cornerPoints = block.getCornerPoints();
@@ -365,15 +449,18 @@ public class CreatePageActivity extends AppCompatActivity implements View.OnClic
                                     for (FirebaseVisionText.Line line: block.getLines()) {
 
                                         Log.d(TAG, "recognizeProcess line : " + line.getText());
-                                        tvResult.append(line.getText() + "\n");
+//                                        tvResult.append(line.getText() + "\n");
+                                        recognizeBuilder.append(line.getText() + ".\n");
+
                                         // ...
                                         for (FirebaseVisionText.Element element: line.getElements()) {
                                             Log.d(TAG, "recognizeProcess element : " + element.getText());
                                         }
                                     }
                                 }
-                                // [END get_text]
-                                // [END_EXCLUDE]
+
+                                tvResult.setText(recognizeBuilder.toString());
+//                                setClickableText(tvResult.getText().toString(), tvResult);
                             }
                         })
                         .addOnFailureListener(

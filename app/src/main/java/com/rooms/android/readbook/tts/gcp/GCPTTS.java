@@ -68,6 +68,7 @@ public class GCPTTS {
 
             ArrayList<AudioData> audios = DBManager.getInstance(mContext).selectAudioData(mMessage);
             if (!audios.isEmpty()) {
+                Log.d(TAG, "already have audio!");
                 playAudio(audios.get(0).getAudioData());
                 return;
             }

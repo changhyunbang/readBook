@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.d(TAG, "checkPermission : " + checkPermission);
 
             if (!checkPermission) {
-                final String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+                final String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
                 ActivityCompat.requestPermissions(this, permissions, 1);
             } else {
                 init();
@@ -128,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //
 //                    return;
 //                }
-
                 TTSManager.getInstance(this).speak(tvResult.getText().toString());
                 break;
             case R.id.BTN_ROTATE_L :
@@ -242,7 +241,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private boolean checkIfAlreadyhavePermission() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override

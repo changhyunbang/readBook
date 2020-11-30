@@ -45,7 +45,7 @@
             android:layout_height="wrap_content"
             android:text="select Image"/>
 
-        <TextView
+        <com.rooms.android.readbook.utils.GetWordTextView
             android:id="@+id/TV_RESULT"
             android:layout_width="match_parent"
             android:layout_height="0dp"

@@ -9,11 +9,32 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ImageView
+            android:id="@+id/IV_IMAGE"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+
         <TextView
             android:id="@+id/TV_TITLE"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center"/>
+
+        <Button
+            android:id="@+id/BTN_PLAY"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"/>
+            android:layout_centerInParent="true"
+            android:text="Play"/>
+
+        <Button
+            android:id="@+id/BTN_EDIT"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="Edit"/>
 
     </RelativeLayout>
 

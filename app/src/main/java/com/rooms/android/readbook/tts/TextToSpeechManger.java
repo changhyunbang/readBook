@@ -19,6 +19,7 @@ public class TextToSpeechManger {
     }
 
     public void speak(String text) {
+        mSpeech.stop();
         mSpeech.start(text);
     }
 

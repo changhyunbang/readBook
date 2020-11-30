@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.rooms.android.readbook.database.DBManager;
 import com.rooms.android.readbook.list.BookItemViewer;
 import com.rooms.android.readbook.model.BookData;
+import com.rooms.android.readbook.utils.Constants;
 
 import java.util.ArrayList;
 
@@ -60,7 +61,7 @@ public class BookListActivity extends AppCompatActivity {
                             String bookId = DBManager.getInstance(mContext).insertBookData(input.getText().toString(), "");
 
                             Intent intent = new Intent(mContext, CreateBookActivity.class);
-                            intent.putExtra(CreateBookActivity.KEY_BOOK_ID, bookId);
+                            intent.putExtra(Constants.KEY_BOOK_ID, bookId);
                             startActivity(intent);
                         }
                     });
@@ -72,10 +73,6 @@ public class BookListActivity extends AppCompatActivity {
                     });
                     builder.show();
 
-                } else {
-                    Intent intent = new Intent(mContext, CreateBookActivity.class);
-                    intent.putExtra(CreateBookActivity.KEY_BOOK_ID, bookData.getBookId());
-                    startActivity(intent);
                 }
             }
         });
@@ -131,7 +128,28 @@ public class BookListActivity extends AppCompatActivity {
 
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
-            BookItemViewer bookItemViewer = new BookItemViewer(getApplicationContext());
+            BookItemViewer bookItemViewer = new BookItemViewer(getApplicationContext(), new BookItemViewer.IBookItemListener() {
+                @Override
+                public void onAction(BookItemViewer.ACTION_TYPE actionType, String bookId) {
+
+                    Intent intent = null;
+
+                    switch (actionType) {
+                        case BOOK_PLAY:
+                            intent = new Intent(mContext, PlayBookActivity.class);
+                            intent.putExtra(Constants.KEY_BOOK_ID, bookId);
+                            break;
+                        case BOOK_EDIT:
+                            intent = new Intent(mContext, CreateBookActivity.class);
+                            intent.putExtra(Constants.KEY_BOOK_ID, bookId);
+                            break;
+                    }
+
+                    if (intent != null) {
+                        startActivity(intent);
+                    }
+                }
+            });
             bookItemViewer.setItem(items.get(i));
             bookItemViewer.setTag(items.get(i));
             return bookItemViewer;

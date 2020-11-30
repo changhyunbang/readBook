@@ -37,6 +37,8 @@ import com.rooms.android.readbook.tts.gcp.GCPVoice;
 import com.rooms.android.readbook.tts.gcp.VoiceCollection;
 import com.rooms.android.readbook.tts.gcp.VoiceList;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Locale;
 
 public class TtsSettingActivity  extends AppCompatActivity implements View.OnClickListener {
@@ -54,6 +56,7 @@ public class TtsSettingActivity  extends AppCompatActivity implements View.OnCli
     private TextView mTextViewSampleRate;
     private SeekBar mSeekBarPitch;
     private SeekBar mSeekBarSpeakRate;
+    private Button mButtonSave;
     private Button mButtonSpeak;
     private Button mButtonSpeakPause;
     private Button mButtonSpeakStop;
@@ -151,6 +154,7 @@ public class TtsSettingActivity  extends AppCompatActivity implements View.OnCli
         mTextViewSampleRate = findViewById(R.id.tvwIdSampleRate);
         mSeekBarPitch = findViewById(R.id.sbrIdPitch);
         mSeekBarSpeakRate = findViewById(R.id.sbrIdSpeakRate);
+        mButtonSave = findViewById(R.id.btnIdSave);
         mButtonSpeak = findViewById(R.id.btnIdSpeak);
         mButtonSpeakPause = findViewById(R.id.btnIdPauseAndResume);
         mButtonSpeakStop = findViewById(R.id.btnIdStop);
@@ -194,6 +198,7 @@ public class TtsSettingActivity  extends AppCompatActivity implements View.OnCli
             }
         });
 
+        mButtonSave.setOnClickListener(this);
         mButtonSpeak.setOnClickListener(this);
         mButtonSpeakPause.setOnClickListener(this);
         mButtonRefresh.setOnClickListener(this);
@@ -275,6 +280,7 @@ public class TtsSettingActivity  extends AppCompatActivity implements View.OnCli
                     @Override
                     public void run() {
                         mSpinnerLanguage.setAdapter(adapterLanguage);
+
                     }
                 });
                 mSpinnerLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -424,6 +430,21 @@ public class TtsSettingActivity  extends AppCompatActivity implements View.OnCli
     public void onClick(View v) {
         int id = v.getId();
         switch (id) {
+            case R.id.btnIdSave: {
+
+                String languageCode = mSpinnerLanguage.getSelectedItem().toString();
+                String name = mSpinnerStyle.getSelectedItem().toString();
+                float pitch = ((float) (mPitch - 2000) / 100);
+                float speakRate = ((float) (mSpeakRate + 25) / 100);
+
+                PreferenceManager.setTtsLanguageCode(getApplicationContext(), languageCode);
+                PreferenceManager.setTtsName(getApplicationContext(), name);
+                PreferenceManager.setTtsPitch(getApplicationContext(), pitch);
+                PreferenceManager.setTtsRate(getApplicationContext(), speakRate);
+
+                Toast.makeText(getApplicationContext(), "Audio config save complete!!", Toast.LENGTH_LONG);
+                break;
+            }
             case R.id.btnIdSpeak: {
                 if (mTextToSpeechManger != null) {
                     mTextToSpeechManger.stop();

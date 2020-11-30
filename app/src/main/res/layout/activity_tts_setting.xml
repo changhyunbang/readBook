@@ -136,7 +136,7 @@
 
     <SeekBar
             android:id="@+id/sbrIdPitch"
-            android:layout_width="100dp"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginStart="8dp"
@@ -159,7 +159,7 @@
 
     <SeekBar
             android:id="@+id/sbrIdSpeakRate"
-            android:layout_width="100dp"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginStart="8dp"
@@ -169,6 +169,17 @@
             app:layout_constraintStart_toEndOf="@id/tvwIdSpeakRate"
             app:layout_constraintTop_toTopOf="@id/tvwIdSpeakRate" />
 
+    <Button
+        android:id="@+id/btnIdSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:text="Save"
+        app:layout_constraintBottom_toTopOf="@+id/btnIdSpeak"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
             android:id="@+id/btnIdSpeak"

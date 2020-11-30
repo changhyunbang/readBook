@@ -13,6 +13,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.rooms.android.readbook.PreferenceManager;
 import com.rooms.android.readbook.tts.android.AndroidTTS;
 import com.rooms.android.readbook.tts.android.AndroidTTSAdapter;
 import com.rooms.android.readbook.tts.android.AndroidVoice;
@@ -58,8 +59,14 @@ public class TTSManager {
 
     public void speak(String srcText) {
 
-        mTextToSpeechManger = loadGCPTTS("en-US", "en-US-Wavenet-F", 0.0f, 1.0f);
+        String languageCode = PreferenceManager.getTtsLanguageCode(selfContext);
+        String name = PreferenceManager.getTtsName(selfContext);
+        float pitch = PreferenceManager.getTtsPitch(selfContext);
+        float speakRate = PreferenceManager.getTtsRate(selfContext);
+
+        mTextToSpeechManger = loadGCPTTS(languageCode, name, pitch, speakRate);
         if (mTextToSpeechManger != null) {
+            mTextToSpeechManger.stop();
             mTextToSpeechManger.speak(srcText);
         }
     }

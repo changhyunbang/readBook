@@ -2,6 +2,7 @@ package com.rooms.android.readbook.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
@@ -12,6 +13,7 @@ import com.squareup.okhttp.internal.Util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
@@ -90,6 +92,20 @@ public class Utils {
             e.printStackTrace();
         }
         return "";
+    }
+
+    public static Bitmap getBitmap(String path) {
+        Bitmap bitmap = null;
+        try {
+            File f= new File(path);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            bitmap = BitmapFactory.decodeStream(new FileInputStream(f), null, options);
+//            image.setImageBitmap(bitmap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bitmap ;
     }
 
     /* Checks if external storage is available for read and write */
